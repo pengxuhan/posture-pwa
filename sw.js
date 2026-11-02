@@ -1,5 +1,5 @@
 // Offline cache for the app shell. Bump VERSION when shipping changes.
-const VERSION = 'v3';
+const VERSION = 'v4';
 const CACHE = `posture-checkin-${VERSION}`;
 const ASSETS = [
   './',

@@ -214,6 +214,40 @@ async function deletePhoto(id) {
   if (url) { URL.revokeObjectURL(url); photoUrls.delete(id); }
 }
 
+/* ---------- Step illustrations ---------- */
+
+// Hand-drawn key poses for 周六野's moves, shown instead of the B站 player
+// (which often won't load inside the app). Original drawings, not her photos.
+const arrow = (x1, y1, x2, y2) => {
+  const a = Math.atan2(y2 - y1, x2 - x1), h = 7;
+  const p = (d) => `${(x2 - h * Math.cos(a + d)).toFixed(1)} ${(y2 - h * Math.sin(a + d)).toFixed(1)}`;
+  return `<path class="a" d="M${x1} ${y1}L${x2} ${y2}M${p(0.5)}L${x2} ${y2}L${p(-0.5)}"/>`;
+};
+const head = (x, y, r = 9) => `<circle class="h" cx="${x}" cy="${y}" r="${r}"/>`;
+const ground = (y) => `<path class="g" d="M8 ${y}H152"/>`;
+const FIGS = {
+  'cat-cow': [
+    ['吸气 · 塌腰抬头（牛式）', ground(102) + '<path d="M50 64Q85 80 120 64M120 64V102M50 64V102H20M120 64L129 54"/>' + head(137, 46) + arrow(85, 84, 85, 96)],
+    ['呼气 · 拱背低头（猫式）', ground(102) + '<path d="M50 64Q85 36 120 64M120 64V102M50 64V102H20M120 64L127 72"/>' + head(133, 80) + arrow(85, 40, 85, 26)]
+  ],
+  doorway: [
+    ['前臂贴门框，肘与肩同高', ground(110) + '<rect class="p" x="118" y="8" width="10" height="102" rx="2"/><path d="M70 38V74M70 74L60 110M70 74L80 110M70 44L54 72M70 44H115V14"/>' + head(70, 26, 10)],
+    ['迈一步前倾，胸前有拉伸感', ground(110) + '<rect class="p" x="54" y="8" width="10" height="102" rx="2"/><path d="M62 74L78 40M62 74L40 110M62 74L80 90L90 110M77 43L64 44V16"/>' + head(84, 27, 10) + arrow(96, 56, 116, 56)]
+  ],
+  'chin-tuck': [
+    ['坐直，目视前方', '<path class="g" stroke-dasharray="4 5" d="M60 8V112"/><path d="M60 112V76L78 56M40 112Q40 84 60 82"/><circle class="h" cx="88" cy="42" r="16"/><path class="h" d="M103 38L110 44L103 48Z"/>'],
+    ['下巴水平后推，停 3 秒', '<path class="g" stroke-dasharray="4 5" d="M60 8V112"/><path d="M60 112V76L62 54M40 112Q40 84 60 82"/><circle class="h" cx="64" cy="38" r="16"/><path class="h" d="M79 34L86 40L79 44Z"/>' + arrow(108, 58, 88, 58)]
+  ],
+  'glute-bridge': [
+    ['仰卧屈膝，腰贴地', ground(104) + '<path d="M34 98H82L110 70L118 102"/>' + head(22, 92)],
+    ['臀部发力抬起，肩髋膝一条线', ground(104) + '<path d="M34 98L76 74L112 54L118 102"/>' + head(22, 92) + arrow(76, 102, 76, 86)]
+  ]
+};
+const figSvg = (body) => `<svg viewBox="0 0 160 120" aria-hidden="true">${body}</svg>`;
+function figsBlock(x) {
+  return `<div class="figs">${FIGS[x.id].map(([cap, body], i) => `<figure class="fig">${figSvg(body)}<figcaption><b>${i + 1}</b>${esc(cap)}</figcaption></figure>`).join('')}</div>`;
+}
+
 /* ---------- Video embeds ---------- */
 
 function embedUrl(url, start) {
@@ -226,26 +260,24 @@ function embedUrl(url, start) {
   else if (host.endsWith('youtube.com')) id = u.searchParams.get('v') || (u.pathname.match(/\/(shorts|embed|live)\/([\w-]+)/) || [])[2];
   // Privacy-enhanced mode: never load youtube.com itself.
   if (id) return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?playsinline=1&rel=0${t ? `&start=${t}` : ''}`;
-  if (host.endsWith('bilibili.com') || host === 'b23.tv') {
-    const bv = (url.match(/BV[0-9A-Za-z]{10}/) || [])[0];
-    if (bv) {
-      const p = u.searchParams.get('p');
-      return `https://player.bilibili.com/player.html?bvid=${bv}${p ? `&page=${encodeURIComponent(p)}` : ''}&autoplay=0&high_quality=1${t ? `&t=${t}` : ''}`;
-    }
-  }
   return null;
 }
 // Link for opening outside the app; YouTube goes to the nocookie player, not youtube.com.
+// B站's embedded player often fails to load in the app, so B站 links always open outside.
 function outsideUrl(x) {
   const emb = embedUrl(x.videoUrl, x.videoStart);
-  return emb && emb.includes('youtube-nocookie.com') ? emb : x.videoUrl;
+  if (emb) return emb;
+  const t = parseStart(x.videoStart);
+  if (t && /bilibili\.com/.test(x.videoUrl)) { const u = new URL(x.videoUrl); u.searchParams.set('t', t); return u.href; }
+  return x.videoUrl;
 }
 function mediaBlock(x, opts = {}) {
   const emb = embedUrl(x.videoUrl, x.videoStart);
   if (emb) return `<iframe src="${esc(emb)}" title="${esc(x.name)} 视频" allow="encrypted-media; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
   if (x.photoIds.length && opts.preferPhoto) return `<div class="media-ph" style="padding:0"><img data-photo="${esc(x.photoIds[0])}" alt="${esc(x.name)} 动作照片" style="width:100%;height:100%;object-fit:contain"></div>`;
+  if (FIGS[x.id]) return figsBlock(x);
   if (isHttpUrl(x.videoUrl)) {
-    return `<div class="media-ph">${I.video}<span>这个链接不能在 App 内播放</span><a class="btn light" href="${esc(x.videoUrl)}" target="_blank" rel="noopener">打开视频${x.videoStart ? `（从 ${esc(x.videoStart)} 开始）` : ''}</a></div>`;
+    return `<div class="media-ph">${I.video}<span>这个链接不能在 App 内播放</span><a class="btn light" href="${esc(outsideUrl(x))}" target="_blank" rel="noopener">打开视频${x.videoStart ? `（从 ${esc(x.videoStart)} 开始）` : ''}</a></div>`;
   }
   return `<div class="media-ph">${I.video}<span>还没有视频<br>粘贴你收藏的 ${esc(x.source)} 视频链接</span>${opts.noEdit ? '' : `<button class="btn light" data-act="edit-ex" data-id="${esc(x.id)}">添加视频链接</button>`}</div>`;
 }
@@ -273,7 +305,8 @@ const I = {
 const tagClass = (s) => (s === 'Pamela' ? 'pam' : s === '周六野' ? 'zly' : 'oth');
 const tag = (s) => `<span class="tag ${tagClass(s)}">${esc(s)}</span>`;
 function thumbHtml(x) {
-  return x.photoIds && x.photoIds.length ? `<img data-photo="${esc(x.photoIds[0])}" alt="">` : I.playLine;
+  if (x.photoIds && x.photoIds.length) return `<img data-photo="${esc(x.photoIds[0])}" alt="">`;
+  return FIGS[x.id] ? `<span class="fig-thumb">${figSvg(FIGS[x.id][0][1])}</span>` : I.playLine;
 }
 
 /* ---------- UI state ---------- */
@@ -496,8 +529,8 @@ function ovDetail(x) {
           <div class="row" style="gap:6px;flex-wrap:wrap">${tag(x.source)}<span class="tag issue">${esc(x.issue)}</span>${inPlan ? '<span class="tag issue">计划中</span>' : ''}</div>
           <h1>${esc(x.name)}</h1>
           ${x.intro ? `<p class="intro">${esc(x.intro)}</p>` : ''}
-          ${isHttpUrl(x.videoUrl) ? `<a class="link sm" href="${esc(outsideUrl(x))}" target="_blank" rel="noopener">在 App 外打开视频</a>` : ''}
-          ${x.videoAuto ? '<p class="muted sm">自动填写的推荐视频：这是一整套训练，这个动作不一定在开头。找到位置后可以在「编辑」里填起始时间。</p>' : ''}
+          ${isHttpUrl(x.videoUrl) ? `<a class="link sm" href="${esc(outsideUrl(x))}" target="_blank" rel="noopener">${/bilibili\.com|b23\.tv/.test(x.videoUrl) ? '在 B站 看完整视频' : '在 App 外打开视频'}</a>` : ''}
+          ${x.videoAuto && embedUrl(x.videoUrl) ? '<p class="muted sm">自动填写的推荐视频：这是一整套训练，这个动作不一定在开头。找到位置后可以在「编辑」里填起始时间。</p>' : ''}
         </div>
         <div class="stats">
           <div class="stat"><span>次数</span><b style="font-size:16px">${esc(x.dose || '—')}</b></div>
@@ -536,7 +569,7 @@ function ovEdit(d) {
         <label class="field"><span>次数 / 组数</span><input name="dose" value="${esc(d.dose)}" placeholder="3 组 × 10 次"></label>
         <label class="field"><span>跟练时长（秒）</span><input name="secs" type="number" inputmode="numeric" min="10" max="1800" value="${esc(d.secs)}"></label>
       </div>
-      <label class="field"><span>视频链接</span><input name="videoUrl" type="url" inputmode="url" value="${esc(d.videoUrl)}" placeholder="B站 或 YouTube 链接"><small>支持 B站（BV 号链接）和 YouTube，可在 App 内播放；其他链接会在浏览器打开。</small></label>
+      <label class="field"><span>视频链接</span><input name="videoUrl" type="url" inputmode="url" value="${esc(d.videoUrl)}" placeholder="B站 或 YouTube 链接"><small>YouTube 可在 App 内播放；B站 和其他链接会在浏览器或 B站 App 打开。</small></label>
       <label class="field"><span>从第几分几秒开始</span><input name="videoStart" value="${esc(d.videoStart)}" placeholder="例如 2:15"></label>
       <div class="field"><span>动作照片</span>
         <div class="thumbs">
