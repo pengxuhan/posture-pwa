@@ -8,30 +8,31 @@ const ISSUES = ['圆肩', '驼背', '头前伸', '骨盆前倾', '高低肩', '�
 const WEEK = ['一', '二', '三', '四', '五', '六', '日'];
 const ICS_DAYS = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'];
 
-// Generic posture moves. Videos are left empty: the user links the
-// Pamela / 周六野 videos they follow themselves.
+// Generic posture moves. `video` is a suggested full routine from that creator
+// (checked to exist and to be on their own channel); moves without one are left
+// for the user to link.
 const SEED = [
-  { id: 'wall-angel', name: '靠墙天使', source: 'Pamela', issue: '圆肩', dose: '3 组 × 10 次', secs: 90,
+  { id: 'wall-angel', name: '靠墙天使', source: 'Pamela', issue: '圆肩', dose: '3 组 × 10 次', secs: 90, video: 'https://www.youtube.com/watch?v=Wdq_pRXwg_8',
     intro: '激活中下斜方肌，打开胸椎，改善含胸和肩膀前扣。',
     steps: ['后脑、上背、臀部贴墙，脚跟离墙约一脚掌', '手臂呈 W 形贴墙，手背和手肘尽量不离墙', '呼气时手臂沿墙缓慢上滑成 Y，再回到 W', '全程腰背不拱起，肋骨下沉'],
     mistakes: '耸肩、腰部离墙、为了贴墙而用力过猛。做不到完全贴墙没关系，范围会慢慢变大。' },
-  { id: 'cat-cow', name: '猫牛式', source: '周六野', issue: '驼背', dose: '10 次 · 慢速', secs: 60,
+  { id: 'cat-cow', name: '猫牛式', source: '周六野', issue: '驼背', dose: '10 次 · 慢速', secs: 60, video: 'https://www.bilibili.com/video/BV1yb42147p1',
     intro: '活动整条脊柱，缓解久坐后上背僵硬。',
     steps: ['四点跪姿，手在肩正下方，膝在髋正下方', '吸气塌腰、抬头、打开胸口（牛式）', '呼气从尾骨开始逐节拱背、低头（猫式）', '跟随呼吸慢速流动'],
     mistakes: '只动脖子不动胸椎；手肘锁死。' },
-  { id: 'doorway', name: '门框胸肌拉伸', source: '周六野', issue: '圆肩', dose: '每侧 30 秒', secs: 60,
+  { id: 'doorway', name: '门框胸肌拉伸', source: '周六野', issue: '圆肩', dose: '每侧 30 秒', secs: 60, video: 'https://www.bilibili.com/video/BV1G5411Y7TJ',
     intro: '放松紧张的胸大肌、胸小肌，让肩膀回到正确位置。',
     steps: ['站在门框旁，前臂贴住门框，手肘与肩同高', '同侧脚向前迈一步，身体缓慢前倾', '胸前有拉伸感后停住，保持自然呼吸', '调整手肘高度可以拉伸胸肌不同部位'],
     mistakes: '塌腰往前顶；肩膀向前耸；拉到刺痛。' },
-  { id: 'ytw', name: '俯卧 Y-T-W', source: 'Pamela', issue: '驼背', dose: '每个 8 次', secs: 90,
+  { id: 'ytw', name: '俯卧 Y-T-W', source: 'Pamela', issue: '驼背', dose: '每个 8 次', secs: 90, video: 'https://www.youtube.com/watch?v=JAuNs5FnAOU',
     intro: '强化上背和肩胛周围的肌肉，帮助挺直上背。',
     steps: ['俯卧，额头下垫毛巾，颈部保持中立', '手臂依次摆成 Y、T、W 形，拇指朝上', '收紧肩胛把手臂抬离地面，停 2 秒', '慢慢放下，换下一个字母'],
     mistakes: '用腰发力把上身抬起；耸肩；抬头。' },
-  { id: 'chin-tuck', name: '下巴后缩', source: '周六野', issue: '头前伸', dose: '2 组 × 12 次', secs: 45,
+  { id: 'chin-tuck', name: '下巴后缩', source: '周六野', issue: '头前伸', dose: '2 组 × 12 次', secs: 45, video: 'https://www.bilibili.com/video/BV1bW411P79X',
     intro: '改善头前伸（乌龟颈），随时随地都能做。',
     steps: ['坐直或站直，目视前方', '下巴水平向后推，像做出"双下巴"', '后颈有拉长感，停 3 秒', '放松后重复'],
     mistakes: '用低头或仰头代替水平后缩。' },
-  { id: 'thoracic-rot', name: '胸椎旋转', source: 'Pamela', issue: '驼背', dose: '每侧 10 次', secs: 60,
+  { id: 'thoracic-rot', name: '胸椎旋转', source: 'Pamela', issue: '驼背', dose: '每侧 10 次', secs: 60, video: 'https://www.youtube.com/watch?v=-KmREab38sQ',
     intro: '提升胸椎旋转灵活度，打开胸口。',
     steps: ['侧卧，屈髋屈膝 90°，双臂向前伸直合掌', '上方手臂向后画弧打开，眼睛跟随手', '膝盖保持并拢贴地', '呼气打开，吸气还原'],
     mistakes: '膝盖跟着翻；用腰代替胸椎转动。' },
@@ -39,7 +40,7 @@ const SEED = [
     intro: '训练深层核心，帮助控制骨盆位置。',
     steps: ['仰卧，手臂指向天花板，屈髋屈膝 90°', '腰部压实地面', '呼气时对侧手脚缓慢伸远', '回到中间，换另一侧'],
     mistakes: '腰离开地面；速度太快。' },
-  { id: 'hip-flexor', name: '跪姿髋屈肌拉伸', source: '周六野', issue: '骨盆前倾', dose: '每侧 45 秒', secs: 90,
+  { id: 'hip-flexor', name: '跪姿髋屈肌拉伸', source: 'Pamela', issue: '骨盆前倾', dose: '每侧 45 秒', secs: 90, video: 'https://www.youtube.com/watch?v=12pSXygAzwk',
     intro: '拉伸久坐缩短的髋屈肌，改善骨盆前倾。',
     steps: ['单膝跪地，前脚踩地成弓步', '收紧臀部，骨盆微微后卷', '身体略向前移，直到后腿大腿前侧有拉伸感', '保持并自然呼吸'],
     mistakes: '塌腰往前顶，拉伸跑到了腰上。' },
@@ -56,7 +57,7 @@ const SEED = [
 function freshState() {
   return {
     v: 1,
-    exercises: SEED.map((e) => ({ ...e, videoUrl: '', videoStart: '', photoIds: [] })),
+    exercises: SEED.map(({ video, ...e }) => ({ ...e, videoUrl: '', videoStart: '', photoIds: [] })),
     planName: '圆肩驼背改善',
     plan: ['wall-angel', 'cat-cow', 'doorway', 'ytw', 'chin-tuck'],
     log: {},
@@ -102,10 +103,22 @@ function load() {
     if (raw) {
       const s = JSON.parse(raw);
       const base = freshState();
-      return { ...base, ...s, settings: { ...base.settings, ...s.settings }, meta: { ...base.meta, ...s.meta } };
+      return fillSeedVideos({ ...base, ...s, settings: { ...base.settings, ...s.settings }, meta: { ...base.meta, ...s.meta } });
     }
   } catch (e) { console.warn('load failed', e); }
-  return freshState();
+  return fillSeedVideos(freshState());
+}
+// Fill suggested videos once, only where the user hasn't linked one, so a link
+// the user clears later stays cleared.
+function fillSeedVideos(st) {
+  if (st.meta.seedVideos) return st;
+  for (const seed of SEED) {
+    const x = st.exercises.find((e) => e.id === seed.id);
+    if (!seed.video || !x || x.videoUrl) continue;
+    Object.assign(x, { videoUrl: seed.video, videoStart: '', videoAuto: true, source: seed.source });
+  }
+  st.meta.seedVideos = 1;
+  return st;
 }
 function save() {
   try { localStorage.setItem(STORE_KEY, JSON.stringify(S)); }
@@ -484,6 +497,7 @@ function ovDetail(x) {
           <h1>${esc(x.name)}</h1>
           ${x.intro ? `<p class="intro">${esc(x.intro)}</p>` : ''}
           ${isHttpUrl(x.videoUrl) ? `<a class="link sm" href="${esc(outsideUrl(x))}" target="_blank" rel="noopener">在 App 外打开视频</a>` : ''}
+          ${x.videoAuto ? '<p class="muted sm">自动填写的推荐视频：这是一整套训练，这个动作不一定在开头。找到位置后可以在「编辑」里填起始时间。</p>' : ''}
         </div>
         <div class="stats">
           <div class="stat"><span>次数</span><b style="font-size:16px">${esc(x.dose || '—')}</b></div>
@@ -962,6 +976,7 @@ document.addEventListener('submit', (ev) => {
   if (!d.name) { toast('请填写动作名称'); form.name.focus(); return; }
   if (d.videoUrl && !isHttpUrl(d.videoUrl)) { toast('视频链接要以 http:// 或 https:// 开头'); form.videoUrl.focus(); return; }
   const orig = ex(d.id);
+  if (orig && orig.videoUrl !== d.videoUrl) d.videoAuto = false;
   if (orig) {
     orig.photoIds.filter((id) => !d.photoIds.includes(id)).forEach(deletePhoto);
     Object.assign(orig, d);
