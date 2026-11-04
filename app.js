@@ -216,8 +216,8 @@ async function deletePhoto(id) {
 
 /* ---------- Step illustrations ---------- */
 
-// Hand-drawn key poses for 周六野's moves, shown instead of the B站 player
-// (which often won't load inside the app). Original drawings, not her photos.
+// Hand-drawn key poses for the built-in moves, shown instead of the video player
+// (B站's often won't load inside the app). Original drawings, not the creators' photos.
 const arrow = (x1, y1, x2, y2) => {
   const a = Math.atan2(y2 - y1, x2 - x1), h = 7;
   const p = (d) => `${(x2 - h * Math.cos(a + d)).toFixed(1)} ${(y2 - h * Math.sin(a + d)).toFixed(1)}`;
@@ -226,6 +226,31 @@ const arrow = (x1, y1, x2, y2) => {
 const head = (x, y, r = 9) => `<circle class="h" cx="${x}" cy="${y}" r="${r}"/>`;
 const ground = (y) => `<path class="g" d="M8 ${y}H152"/>`;
 const FIGS = {
+  'wall-angel': [
+    ['背贴墙，手臂成 W', '<rect class="p" x="28" y="6" width="104" height="104" rx="3"/>' + ground(110) + '<path d="M80 36V76M80 76L70 110M80 76L90 110M60 46H100M60 46L46 62L40 38M100 46L114 62L120 38"/>' + head(80, 25, 10)],
+    ['沿墙上滑成 Y，再回到 W', '<rect class="p" x="28" y="6" width="104" height="104" rx="3"/>' + ground(110) + '<path d="M80 36V76M80 76L70 110M80 76L90 110M60 46H100M60 46L40 12M100 46L120 12"/>' + head(80, 25, 10) + arrow(20, 56, 20, 30) + arrow(140, 56, 140, 30)]
+  ],
+  ytw: [
+    ['Y：手臂抬离地面', '<path d="M80 34V82M80 82L72 114M80 82L88 114M66 40H94M66 40L44 8M94 40L116 8"/>' + head(80, 22)],
+    ['T：收紧肩胛', '<path d="M80 34V82M80 82L72 114M80 82L88 114M66 40H94M66 40H30M94 40H130"/>' + head(80, 22)],
+    ['W：手肘往后夹', '<path d="M80 34V82M80 82L72 114M80 82L88 114M66 40H94M66 40L46 58L40 34M94 40L114 58L120 34"/>' + head(80, 22)]
+  ],
+  'thoracic-rot': [
+    ['侧卧屈膝，双臂向前合掌', ground(104) + '<path d="M34 96H86M86 96L100 72L126 80M42 94L62 62"/>' + head(22, 90)],
+    ['上方手臂向后打开，眼看手', ground(104) + '<path d="M34 96H86M86 96L100 72L126 80M42 94L62 62M42 94L18 66"/><path class="a" d="M62 52Q42 34 24 52"/>' + arrow(30, 46, 23, 54) + head(22, 90)]
+  ],
+  'dead-bug': [
+    ['仰卧，手指天，屈髋屈膝 90°', ground(104) + '<path d="M34 98H80M44 98V62M80 98V70H108"/>' + head(22, 92)],
+    ['对侧手脚慢慢伸远，腰贴地', ground(104) + '<path d="M34 98H80M44 98V62M44 96L22 68M80 98V70H108M80 98L136 88"/>' + head(22, 92) + arrow(116, 80, 134, 77)]
+  ],
+  'hip-flexor': [
+    ['单膝跪地，收紧臀部', ground(106) + '<path d="M24 106H52L64 72V36M64 72L98 74L100 106M64 42L72 58L66 70"/>' + head(64, 24, 10)],
+    ['身体前移，后腿前侧有拉伸感', ground(106) + '<path d="M24 106H52L76 76V40M76 76L102 78L104 106M76 46L84 62L78 74"/>' + head(76, 28, 10) + arrow(90, 56, 110, 56)]
+  ],
+  'side-er': [
+    ['侧卧，手肘贴身弯成 90°', ground(106) + '<path d="M32 96H92L112 84L136 98M38 82H66L72 100"/>' + head(22, 90)],
+    ['前臂向上打开，手肘不离身体', ground(106) + '<path d="M32 96H92L112 84L136 98M38 82H66L70 52"/><path class="a" d="M84 92Q92 72 82 58"/>' + arrow(86, 64, 82, 57) + head(22, 90)]
+  ],
   'cat-cow': [
     ['吸气 · 塌腰抬头（牛式）', ground(102) + '<path d="M50 64Q85 80 120 64M120 64V102M50 64V102H20M120 64L129 54"/>' + head(137, 46) + arrow(85, 84, 85, 96)],
     ['呼气 · 拱背低头（猫式）', ground(102) + '<path d="M50 64Q85 36 120 64M120 64V102M50 64V102H20M120 64L127 72"/>' + head(133, 80) + arrow(85, 40, 85, 26)]
@@ -245,7 +270,7 @@ const FIGS = {
 };
 const figSvg = (body) => `<svg viewBox="0 0 160 120" aria-hidden="true">${body}</svg>`;
 function figsBlock(x) {
-  return `<div class="figs">${FIGS[x.id].map(([cap, body], i) => `<figure class="fig">${figSvg(body)}<figcaption><b>${i + 1}</b>${esc(cap)}</figcaption></figure>`).join('')}</div>`;
+  return `<div class="figs" style="grid-template-columns:repeat(${FIGS[x.id].length},1fr)">${FIGS[x.id].map(([cap, body], i) => `<figure class="fig">${figSvg(body)}<figcaption><b>${i + 1}</b>${esc(cap)}</figcaption></figure>`).join('')}</div>`;
 }
 
 /* ---------- Video embeds ---------- */
@@ -272,10 +297,10 @@ function outsideUrl(x) {
   return x.videoUrl;
 }
 function mediaBlock(x, opts = {}) {
-  const emb = embedUrl(x.videoUrl, x.videoStart);
-  if (emb) return `<iframe src="${esc(emb)}" title="${esc(x.name)} 视频" allow="encrypted-media; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
   if (x.photoIds.length && opts.preferPhoto) return `<div class="media-ph" style="padding:0"><img data-photo="${esc(x.photoIds[0])}" alt="${esc(x.name)} 动作照片" style="width:100%;height:100%;object-fit:contain"></div>`;
   if (FIGS[x.id]) return figsBlock(x);
+  const emb = embedUrl(x.videoUrl, x.videoStart);
+  if (emb) return `<iframe src="${esc(emb)}" title="${esc(x.name)} 视频" allow="encrypted-media; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
   if (isHttpUrl(x.videoUrl)) {
     return `<div class="media-ph">${I.video}<span>这个链接不能在 App 内播放</span><a class="btn light" href="${esc(outsideUrl(x))}" target="_blank" rel="noopener">打开视频${x.videoStart ? `（从 ${esc(x.videoStart)} 开始）` : ''}</a></div>`;
   }
@@ -529,8 +554,8 @@ function ovDetail(x) {
           <div class="row" style="gap:6px;flex-wrap:wrap">${tag(x.source)}<span class="tag issue">${esc(x.issue)}</span>${inPlan ? '<span class="tag issue">计划中</span>' : ''}</div>
           <h1>${esc(x.name)}</h1>
           ${x.intro ? `<p class="intro">${esc(x.intro)}</p>` : ''}
-          ${isHttpUrl(x.videoUrl) ? `<a class="link sm" href="${esc(outsideUrl(x))}" target="_blank" rel="noopener">${/bilibili\.com|b23\.tv/.test(x.videoUrl) ? '在 B站 看完整视频' : '在 App 外打开视频'}</a>` : ''}
-          ${x.videoAuto && embedUrl(x.videoUrl) ? '<p class="muted sm">自动填写的推荐视频：这是一整套训练，这个动作不一定在开头。找到位置后可以在「编辑」里填起始时间。</p>' : ''}
+          ${isHttpUrl(x.videoUrl) ? `<a class="link sm" href="${esc(outsideUrl(x))}" target="_blank" rel="noopener">${/bilibili\.com|b23\.tv/.test(x.videoUrl) ? '在 B站 看完整视频' : FIGS[x.id] ? '看完整视频' : '在 App 外打开视频'}</a>` : ''}
+          ${x.videoAuto && embedUrl(x.videoUrl) && !FIGS[x.id] ? '<p class="muted sm">自动填写的推荐视频：这是一整套训练，这个动作不一定在开头。找到位置后可以在「编辑」里填起始时间。</p>' : ''}
         </div>
         <div class="stats">
           <div class="stat"><span>次数</span><b style="font-size:16px">${esc(x.dose || '—')}</b></div>
@@ -569,7 +594,7 @@ function ovEdit(d) {
         <label class="field"><span>次数 / 组数</span><input name="dose" value="${esc(d.dose)}" placeholder="3 组 × 10 次"></label>
         <label class="field"><span>跟练时长（秒）</span><input name="secs" type="number" inputmode="numeric" min="10" max="1800" value="${esc(d.secs)}"></label>
       </div>
-      <label class="field"><span>视频链接</span><input name="videoUrl" type="url" inputmode="url" value="${esc(d.videoUrl)}" placeholder="B站 或 YouTube 链接"><small>YouTube 可在 App 内播放；B站 和其他链接会在浏览器或 B站 App 打开。</small></label>
+      <label class="field"><span>视频链接</span><input name="videoUrl" type="url" inputmode="url" value="${esc(d.videoUrl)}" placeholder="B站 或 YouTube 链接"><small>有示意图的动作会显示示意图，视频在 App 外打开；其他动作的 YouTube 链接可在 App 内播放。</small></label>
       <label class="field"><span>从第几分几秒开始</span><input name="videoStart" value="${esc(d.videoStart)}" placeholder="例如 2:15"></label>
       <div class="field"><span>动作照片</span>
         <div class="thumbs">
